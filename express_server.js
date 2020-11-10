@@ -8,9 +8,14 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+function generateRandomString() {
+  
+}
+
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({extended:true}));
+
 
 app.get("/", (req, res) => {
   res.send('Hello!');
@@ -37,6 +42,11 @@ app.get("/urls.json", (req, res) => {
 
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
+});
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);
+  res.send('ok');
 });
 
 app.listen(PORT, () => {
