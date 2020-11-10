@@ -51,7 +51,7 @@ app.get("/hello", (req, res) => {
 app.post("/urls", (req, res) => {
   let shortURLkey = generateRandomString();
   urlDatabase[shortURLkey] = req.body.longURL;
-  res.send('ok');
+  res.redirect(`/urls/${shortURLkey}`);
 });
 
 app.listen(PORT, () => {
