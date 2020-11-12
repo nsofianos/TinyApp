@@ -12,6 +12,18 @@ const urlDatabase = {
 const users = {
 
 };
+function validatePW(request) {
+
+};
+
+function findUserByEmail(request) {
+  for (const u in users) {
+    if (request.body.email === users[u].email) {
+      return users[u];
+    }
+    return false;
+  }
+};
 
 function generateRandomString() {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -20,7 +32,7 @@ function generateRandomString() {
     randomString += chars[Math.floor(Math.random() * chars.length)];
   }
   return randomString;
-}
+};
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended:true}));
@@ -85,7 +97,13 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username);
+  if (!findUserByEmail(req)) {
+    res.sendStatus(403);
+  };
+  if (findUserByEmail(req).password !== req.body.password) {
+    res.sendStatus(403);
+  };
+  res.cookie('userID', findUserByEmail(req).id);
   res.redirect('/urls');
 });
 
@@ -99,13 +117,13 @@ app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {
     res.sendStatus(400);
   };
-  //send 400 code if email is already registered
-  for (const user in users) {
-    if (users[user].email === req.body.email) {
-      res.sendStatus(400);
-    }
-  }
+
+  if (findUserByEmail(req)) {
+    res.sendStatus(400);
+  };
+
   let user = generateRandomString();
+
   users[user] = { 
     'id': user,
     'email': req.body.email,
