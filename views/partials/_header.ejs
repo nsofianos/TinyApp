@@ -11,11 +11,14 @@
       </div>
     </div>
     <% if (!user) { %>
-      <form class="form-inline" action="/login" method="POST">
+      <form class="form-inline" action="/login" method="GET">
         <div class="form-group mb-2">
-          <label for="username">Login: </label>
-          <input class="form-control" type="text" name="username" placeholder="username" style="width: 200px">
-          <button type="submit" class="btn btn-primary">Submit</button>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+      </form>
+      <form class="form-inline" action="/register" method="GET">
+        <div class="form-group mb-2">
+          <button type="submit" class="btn btn-primary">Register</button>
         </div>
       </form>
     <% }  else { %>

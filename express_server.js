@@ -23,7 +23,6 @@ function generateRandomString() {
 }
 
 app.set("view engine", "ejs");
-
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(cookieParser());
 
@@ -64,7 +63,10 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/login");
+app.get("/login", (req, res) => {
+  const templateVars = { user: users[req.cookies["userID"]]}
+  res.render('urls_login', templateVars);
+});
 
 app.post("/urls", (req, res) => {
   let shortURLkey = generateRandomString();
