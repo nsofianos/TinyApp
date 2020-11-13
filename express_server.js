@@ -1,5 +1,5 @@
+const { findUserByEmail } = require('./helpers');
 const express = require('express');
-const helpers = require('./helpers');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
@@ -10,8 +10,8 @@ const urlDatabase = {};
 const users = {};
 
 
-function generateRandomString() {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const generateRandomString = () => {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let randomString = "";
   for (let i = 0; i < 6; i++) {
     randomString += chars[Math.floor(Math.random() * chars.length)];
@@ -19,7 +19,7 @@ function generateRandomString() {
   return randomString;
 };
 
-function urlsForUser(id) {
+const urlsForUser = (id) => {
   const matchingURLs = [];
   for (const url in urlDatabase) {
     if (urlDatabase[url].userID === id) {
@@ -37,14 +37,7 @@ app.use(cookieSession({
   keys: ['niko'],
 }));
 
-
-app.get("/", (req, res) => {
-  res.send('Hello!');
-});
-
 app.get("/urls", (req, res) => {
-  console.log('urldatabase: ', urlDatabase);
-  //console.log(users);
   const templateVars = { urls: urlDatabase, user: users[req.session.user_id]};
   res.render("urls_index", templateVars);
 });
@@ -56,54 +49,48 @@ app.get("/register", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[req.session.user_id] };
+  //redirect if not logged in
+  if (!templateVars.user) {
+    res.redirect('/login');
+  }
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  
+  //check if logged in first
   if (!req.session.user_id) {
-    res.redirect('/login');
-  } else {
-    const shortURL = req.params.shortURL;
-    const longURL = urlDatabase[shortURL]['longURL'];
-    const matchingURLs = urlsForUser(req.session.user_id);
-    let sameID = false;
-    
-    for (const url of matchingURLs) {
-      if (url === shortURL) {
-        sameID = true;
-        templateVars = { shortURL, longURL, user: users[req.session.user_id], sameID};
-      }
-      return res.render("urls_show", templateVars);
-
-    };
-
+    res.status(403).send('Error 403 Forbidden - Please login first!');
   }
-  
-  res.status(403).send('This url does not belong to you');
-
-  //redirect if user isnt logged in
-
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL]['longURL'];
+  const matchingURLs = urlsForUser(req.session.user_id);
+  //render page if url belongs to user
+  for (const url of matchingURLs) {
+    if (url === shortURL) {
+      const templateVars = { shortURL, longURL, user: users[req.session.user_id] };
+      res.render("urls_show", templateVars);
+    }
+  }
+  //otherwise send 403 code
+  res.status(403).send('Error 403 Forbidden - This url does not belong to you');
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  //send the user to the longurl site
   const longURL = urlDatabase[req.params.shortURL]['longURL'];
   res.redirect(longURL);
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
 app.get("/login", (req, res) => {
-  const templateVars = { user: users[req.session.user_id]}
+  const templateVars = { user: users[req.session.user_id] };
   res.render('urls_login', templateVars);
 });
 
 app.post("/urls", (req, res) => {
+  //add urls to the database
   let shortURLkey = generateRandomString();
   urlDatabase[shortURLkey] = { 'longURL': req.body.longURL, 'userID': req.session.user_id};
-  res.redirect(`/urls`);
+  res.redirect(`/urls/${shortURLkey}`);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -111,22 +98,24 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect('/urls');
 });
 
-app.post("/urls/:shortURL/edit", (req, res) => {
+app.post("/urls/:shortURL", (req, res) => {
+  //edit the corresponding longURL
   urlDatabase[req.params.shortURL]['longURL'] = req.body.longURL;
   res.redirect('/urls');
 });
 
 app.post("/login", (req, res) => {
-  const user = helpers.findUserByEmail(req.body.email, users);
+  const user = findUserByEmail(req.body.email, users);
+
   //send 403 code if email doesnt exist
   if (!user) {
-    res.sendStatus(403);
-    console.log('userdoesntexist', user)
+    res.status(403).send('Error: 403 Forbidden - Invalid credentials');
   }
   //send 403 code if passwords dont match
   else if (!bcrypt.compareSync(req.body.password, user.password)) {
-    res.sendStatus(403);
+    res.status(403).send('Error: 403 Forbidden - Invalid credentials');
   }
+  //otherwise set cookie and redirect to main page
   else {
     req.session.user_id = user.id;
     res.redirect('/urls');
@@ -134,32 +123,33 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
+  //wipe cookie value and redirect
   req.session.user_id = null;
   res.redirect('/urls');
 });
 
 app.post("/register", (req, res) => {
+
   //send 400 code if email or password fields are left empty
   if (!req.body.email || !req.body.password) {
-    res.sendStatus(400);
+    res.status(400).send('Error: 400 Bad Request - One or more fields left blank');
   }
   //send 400 code if email already exists
-  else if (helpers.findUserByEmail(req.body.email, users)) {
-    console.log("findbyemailifstatement");
-    res.sendStatus(400);
+  else if (findUserByEmail(req.body.email, users)) {
+    res.status(400).send('Error: 400 Bad Request - Email already in use');
   }
+  //otherwise add user to database, set cookie, and redirect
   else {
     let user = generateRandomString();
     const hashedPW = bcrypt.hashSync(req.body.password, 10);
-    users[user] = { 
+    users[user] = {
       'id': user,
       'email': req.body.email,
-      'password': hashedPW 
+      'password': hashedPW
     };
     req.session.user_id = user;
-    //console.log(users);
     res.redirect('/urls');
-  };
+  }
 });
 
 app.listen(PORT, () => {

@@ -7,4 +7,4 @@ function findUserByEmail(email, usersdb) {
   return false;
 };
 
-module.exports = findUserByEmail;
+module.exports = { findUserByEmail };
