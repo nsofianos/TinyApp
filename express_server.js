@@ -1,4 +1,5 @@
 const express = require('express');
+const helpers = require('./helpers');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
@@ -8,15 +9,6 @@ const PORT = 8080;
 const urlDatabase = {};
 const users = {};
 
-function findUserByEmail(email, usersdb) {
-  console.log('usersdb', usersdb, email);
-  for (const u in usersdb) {
-    if (email === usersdb[u].email) {
-      return usersdb[u];
-    }
-  }
-  return false;
-};
 
 function generateRandomString() {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -125,7 +117,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const user = findUserByEmail(req.body.email, users);
+  const user = helpers.findUserByEmail(req.body.email, users);
   //send 403 code if email doesnt exist
   if (!user) {
     res.sendStatus(403);
@@ -152,7 +144,7 @@ app.post("/register", (req, res) => {
     res.sendStatus(400);
   }
   //send 400 code if email already exists
-  else if (findUserByEmail(req.body.email, users)) {
+  else if (helpers.findUserByEmail(req.body.email, users)) {
     console.log("findbyemailifstatement");
     res.sendStatus(400);
   }
