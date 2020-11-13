@@ -68,7 +68,7 @@ app.get("/urls/:shortURL", (req, res) => {
   for (const url of matchingURLs) {
     if (url === shortURL) {
       const templateVars = { shortURL, longURL, user: users[req.session.user_id] };
-      res.render("urls_show", templateVars);
+      return res.render("urls_show", templateVars);
     }
   }
   //otherwise send 403 code

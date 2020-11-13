@@ -18,21 +18,21 @@
     <% if (!user) { %>
       <form class="form-inline" action="/login" method="GET">
         <div class="form-group mb-2">
-          <button type="submit" class="btn btn-primary">Login</button>
+          <button type="submit" class="btn btn-outline-dark">Login</button>
         </div>
       </form>
       <form class="form-inline" action="/register" method="GET">
-        <div class="form-group mb-2">
-          <button type="submit" class="btn btn-primary">Register</button>
+        <div class="form-group mb-2" style=" margin-left: 5px">
+          <button type="submit" class="btn btn-primary">Sign up</button>
         </div>
       </form>
-    <% }  else { %>
-      <form class="form-inline" action="/logout" method="POST">
-        <label>Logged in as <%= user.email %></label>
-        <div class="form-group mb-2" style=" margin-left: 10px">
-          <button type="submit" class="btn btn-outline-primary">Logout</button>
-        </div>
-      </form>
-    <% } %>
-  </nav>
+      <% }  else { %>
+        <form class="form-inline" action="/logout" method="POST">
+          <label>Logged in as <%= user.email %></label>
+          <div class="form-group mb-2" style=" margin-left: 10px">
+            <button type="submit" class="btn btn-primary">Logout</button>
+          </div>
+        </form>
+        <% } %>
+      </nav>
 </header>
